@@ -1,0 +1,52 @@
+
+
+<canvas class="canvas" id="canvas" width="400" height="400"></canvas>
+
+<script src="vector.js"></script>
+<script src="vehicle.js"></script>
+
+<script>
+
+let v = new Vehicle(200,200);
+let t = new Vector(200,200);
+
+
+window.onload = function (){
+        canvas = document.getElementById("canvas");
+        ctx = canvas.getContext("2d");
+        document.addEventListener("mousemove",mouseMove)
+        var loop = setInterval(gameLoop, 1000/80);
+    }
+
+    function mouseMove(event)
+    {
+        t.x = event.clientX;
+        t.y = event.clientY;
+    }
+
+    function keyPush(event)
+    {
+        v = new Vehicle(200,200);
+    }
+
+    function gameLoop()
+    {
+        v.Update();
+        v.Seek(t);
+        draw();
+        v.Draw(ctx);
+    }
+
+    function draw()
+    {
+        ctx.fillStyle = "black";
+        ctx.fillRect(0,0,canvas.width, canvas.height);
+
+        ctx.fillStyle = "grey";
+        ctx.beginPath();
+        ctx.arc(t.x,t.y,20,0,2*Math.PI,true);
+        ctx.fill();
+    }
+
+
+</script>
