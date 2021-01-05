@@ -12,22 +12,13 @@ class Vehicle
         this.health = 1;
 
         this.dna = [];
-        this.dna[0] = Math.random() * 10 - 5;
-        this.dna[1] = Math.random() * 10 - 5;
+        this.dna[0] = Math.random() * 4- 2;
+        this.dna[1] = Math.random() * 4 - 2;
     }
 
     Update()
     {
-        this.health -= 0.001;
-        if (this.health < 0)
-        {
-            this.health = 0;
-        }
-        if (this.health > 
-            1)
-        {
-            this.health = 1;
-        }
+        this.health -= 0.005;
         this.velocity = Vector.Add(this.velocity,this.acceleration);
         this.velocity = Vector.Limit(this.velocity,this.maxSpeed);
         this.position = Vector.Add(this.position,this.velocity);
@@ -69,6 +60,10 @@ class Vehicle
         {
             list.splice(indexOfClosest,1);
             this.health += reward;
+            if (this.health > 1)
+            {
+                this.health = 1;
+            }
             //addFood();
         }
         else if (indexOfClosest >= 0)
@@ -109,7 +104,6 @@ class Vehicle
         point2 = Vector.Add(point2,this.position);
         point3 = Vector.Add(point3,this.position);
         
-        console.log("#" + this.ToHex(Math.floor(255 - 255*this.health)) + this.ToHex(Math.floor(255*this.health)) + "00");
         ctx.fillStyle = "#" + this.ToHex(Math.floor(255 - 255*this.health)) + this.ToHex(Math.floor(255*this.health)) + "00";
         ctx.beginPath();
         ctx.moveTo(point1.x,point1.y);
@@ -154,5 +148,17 @@ class Vehicle
         return str;
     }
 
+    Boundaries = function(width, height)
+    {
+        var d = 50;
+
+        if (this.position.x > width - d || 
+            this.position.x < d || 
+            this.position.y < d || 
+            this.position.y > height - d)
+            {
+                this.ApplyForce(Vector.SetLength(Vector.Subtract(new Vector(width/2,height/2),this.position),this.maxForce*50));
+            }
+    }
 
 }
