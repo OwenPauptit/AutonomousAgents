@@ -1,6 +1,6 @@
 
 
-<canvas class="canvas" id="canvas" width="400" height="400"></canvas>
+<canvas class="canvas" id="canvas" width="800" height="600"></canvas>
 
 <script src="vector.js"></script>
 <script src="vehicle.js"></script>
@@ -9,12 +9,33 @@
 
 let v = new Vehicle(200,200);
 let t = new Vector(200,200);
-
+vehicles = [];
+food = [];
+poison = [];
 
 window.onload = function (){
         canvas = document.getElementById("canvas");
         ctx = canvas.getContext("2d");
         document.addEventListener("mousemove",mouseMove)
+        for (var i = 0; i < 10; i++)
+        {
+            var x = Math.random() * canvas.width;
+            var y = Math.random() * canvas.height;
+            vehicles[i] = new Vehicle(x,y);
+        }
+        for (var i = 0; i < 50; i++)
+        {
+            var x = Math.random() * canvas.width;
+            var y = Math.random() * canvas.height;
+            food.push(new Vector(x,y));
+        }
+        for (var i = 0; i < 10; i++)
+        {
+            var x = Math.random() * canvas.width;
+            var y = Math.random() * canvas.height;
+            poison.push(new Vector(x,y));
+        }
+
         var loop = setInterval(gameLoop, 1000/80);
     }
 
@@ -29,12 +50,37 @@ window.onload = function (){
         v = new Vehicle(200,200);
     }
 
+    function addFood()
+    {
+        var x = Math.random() * canvas.width;
+        var y = Math.random() * canvas.height;
+        food.push(new Vector(x,y));
+    }
+
     function gameLoop()
     {
-        v.Update();
-        v.Seek(t);
+        
         draw();
-        v.Draw(ctx);
+
+        for (var i = vehicles.length - 1; i >= 0; i--)
+        {
+            vehicles[i].Update();
+            //v.Seek(t);
+            //v.Eat(food);
+            //v.Eat(poison);
+            vehicles[i].Behave(food,poison);
+            vehicles[i].Draw(ctx);
+
+            if (vehicles[i].Dead())
+            {
+                vehicles.splice(i,1);
+            }
+        }
+
+        if (Math.random() < 0.02)
+        {
+            addFood();
+        }
     }
 
     function draw()
@@ -42,10 +88,26 @@ window.onload = function (){
         ctx.fillStyle = "black";
         ctx.fillRect(0,0,canvas.width, canvas.height);
 
-        ctx.fillStyle = "grey";
+        /*ctx.fillStyle = "grey";
         ctx.beginPath();
         ctx.arc(t.x,t.y,20,0,2*Math.PI,true);
-        ctx.fill();
+        ctx.fill();*/
+
+        ctx.fillStyle = "lime";
+        for (var i = 0; i < food.length; i++)
+        {
+            ctx.beginPath();
+            ctx.arc(food[i].x, food[i].y, 4, 0, 2*Math.PI);
+            ctx.fill();
+        }
+
+        ctx.fillStyle = "red";
+        for (var i = 0; i < poison.length; i++)
+        {
+            ctx.beginPath();
+            ctx.arc(poison[i].x, poison[i].y, 4, 0, 2*Math.PI);
+            ctx.fill();
+        }
     }
 
 

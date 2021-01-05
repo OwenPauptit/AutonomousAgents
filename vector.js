@@ -63,4 +63,14 @@ class Vector
         return new Vector(x2,y2);
     }
 
+    static Distance = function(a,b)
+    {
+        return Vector.Length(Vector.Subtract(b,a));
+    }
+
+    static DistanceSquared = function(a,b)
+    {
+        return Vector.LengthSquared(Vector.Subtract(b,a));
+    }
+
 }
