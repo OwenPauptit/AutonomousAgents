@@ -1,11 +1,21 @@
 
 
 <canvas class="canvas" id="canvas" width="800" height="600"></canvas>
+<br/>
+<input type="checkbox" id="checkbox">
+<label>Show Vehicle Attributes</label>
+<br/>
 
 <script src="vector.js"></script>
 <script src="vehicle.js"></script>
 
 <script>
+
+FOODRATE = 0.025;
+POISONRATE = 0.01;
+MUTATIONRATE = 0.2;
+REPRODUCTIONRATE = 0.0025;
+SHOWATTRIBUTES = true;
 
 let v = new Vehicle(200,200);
 let t = new Vector(200,200);
@@ -16,20 +26,21 @@ poison = [];
 window.onload = function (){
         canvas = document.getElementById("canvas");
         ctx = canvas.getContext("2d");
-        document.addEventListener("mousemove",mouseMove)
+        document.addEventListener("mousemove",mouseMove);
+        checkbox = document.getElementById("checkbox");
         for (var i = 0; i < 10; i++)
         {
             var x = Math.random() * canvas.width;
             var y = Math.random() * canvas.height;
             vehicles[i] = new Vehicle(x,y);
         }
-        for (var i = 0; i < 50; i++)
+        for (var i = 0; i < 40; i++)
         {
             var x = Math.random() * canvas.width;
             var y = Math.random() * canvas.height;
             food.push(new Vector(x,y));
         }
-        for (var i = 0; i < 10; i++)
+        for (var i = 0; i < 20; i++)
         {
             var x = Math.random() * canvas.width;
             var y = Math.random() * canvas.height;
@@ -57,31 +68,52 @@ window.onload = function (){
         food.push(new Vector(x,y));
     }
 
+    function addPoison()
+    {
+        var x = Math.random() * canvas.width;
+        var y = Math.random() * canvas.height;
+        poison.push(new Vector(x,y));
+    }
+
     function gameLoop()
     {
-        
+        SHOWATTRIBUTES = checkbox.checked;
+
         draw();
 
         for (var i = vehicles.length - 1; i >= 0; i--)
         {
-            //vehicles[i].Boundaries();
-            vehicles[i].Update();
+            vehicles[i].Boundaries(canvas.width,canvas.height);
             //v.Seek(t);
             //v.Eat(food);
             //v.Eat(poison);
             vehicles[i].Behave(food,poison);
+            vehicles[i].Update();
 
             vehicles[i].Draw(ctx);
 
+            var child = vehicles[i].Reproduce();
+            if (child != null)
+            {
+                vehicles.push(child);
+            }
+
             if (vehicles[i].Dead())
             {
+                var x = vehicles[i].position.x;
+                var y = vehicles[i].position.y;
+                food.push(new Vector(x,y));
                 vehicles.splice(i,1);
             }
         }
 
-        if (Math.random() < 0.02)
+        if (Math.random() < FOODRATE)
         {
             addFood();
+        }
+        if (Math.random() < POISONRATE)
+        {
+            addPoison();
         }
     }
 

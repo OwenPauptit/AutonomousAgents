@@ -1,6 +1,8 @@
+
+var MutationRate = 0.5;
 class Vehicle
 {
-    constructor(x,y)
+    constructor(x,y,dna)
     {
         this.position = new Vector(x,y);
         this.velocity = new Vector(Math.random()*8-4,Math.random()*8-4);
@@ -12,13 +14,54 @@ class Vehicle
         this.health = 1;
 
         this.dna = [];
-        this.dna[0] = Math.random() * 4- 2;
-        this.dna[1] = Math.random() * 4 - 2;
+
+        if (dna == undefined)
+        {
+            //Attraction to food
+            this.dna[0] = Math.random() * 4- 2;
+            //Attraction to poison
+            this.dna[1] = Math.random() * 4 - 2;
+            //Food perception
+            this.dna[2] = Math.random() * 100;
+            //Poison perception
+            this.dna[3] = Math.random() * 100;
+        }
+        else
+        {
+            this.dna[0] = dna[0];
+            if (Math.random() < MUTATIONRATE)
+            {
+                this.dna[0] += Math.random()*2 - 1;
+            }
+            this.dna[1] = dna[1];
+            if (Math.random() < MUTATIONRATE)
+            {
+                this.dna[1] += Math.random()*2 - 1;
+            }
+            this.dna[2] = dna[2];
+            if (Math.random() < MUTATIONRATE)
+            {
+                this.dna[2] += Math.random()*60-30;
+                if (this.dna[2] < 0)
+                {
+                    this.dna[2] = 0;
+                }
+            }
+            this.dna[3] = dna[3];
+            if (Math.random() < MUTATIONRATE)
+            {
+                this.dna[3] += Math.random()*60-30;
+                if (this.dna[3] < 0)
+                {
+                    this.dna[3] = 0;
+                }
+            }
+        }
     }
 
     Update()
     {
-        this.health -= 0.005;
+        this.health -= 0.003;
         this.velocity = Vector.Add(this.velocity,this.acceleration);
         this.velocity = Vector.Limit(this.velocity,this.maxSpeed);
         this.position = Vector.Add(this.position,this.velocity);
@@ -27,8 +70,8 @@ class Vehicle
 
     Behave(good, bad)
     {
-        var steerG = this.Eat(good,0.3);
-        var steerB = this.Eat(bad,-0.5);
+        var steerG = this.Eat(good,0.2,this.dna[2]);
+        var steerB = this.Eat(bad,-0.5,this.dna[3]);
 
         steerG = Vector.Scale(steerG, this.dna[0]);
         steerB = Vector.Scale(steerB, this.dna[1]);
@@ -43,32 +86,33 @@ class Vehicle
         this.acceleration = Vector.Add(this.acceleration,force);
     }
 
-    Eat(list,reward)
+    Eat(list,nutrition,perception)
     {
-        var closest = Infinity;
-        var indexOfClosest = -1;
-        for(var i = 0; i < list.length; i++)
+        var record = Infinity;
+        var closest = null;
+        for(var i = list.length - 1; i >= 0; i--)
         {
             var d = Vector.DistanceSquared(list[i],this.position);
-            if (d < closest)
+            
+            if (d <= 6 * this.maxSpeed * this.maxSpeed)
             {
-                closest = d;
-                indexOfClosest = i;
+                list.splice(i,1);
+                this.health += nutrition;
+                if (this.health > 1)
+                {
+                    this.health = 1;
+                }
+            }
+            else if (d < record && d < perception * perception)
+            {
+                record = d;
+                closest = list[i];
             }
         }
-        if (closest <= 2* this.r)
+        
+        if (closest != null)
         {
-            list.splice(indexOfClosest,1);
-            this.health += reward;
-            if (this.health > 1)
-            {
-                this.health = 1;
-            }
-            //addFood();
-        }
-        else if (indexOfClosest >= 0)
-        {
-            return this.Seek(list[indexOfClosest]);
+            return this.Seek(closest);
         }
 
         return new Vector(0,0);
@@ -86,6 +130,15 @@ class Vehicle
     Dead = function()
     {
         return this.health < 0;
+    }
+
+    Reproduce()
+    {
+        if (Math.random() < REPRODUCTIONRATE)
+        {
+            return new Vehicle(this.position.x,this.position.y,this.dna)
+        }
+        return null;
     }
 
     Draw(ctx)
@@ -112,28 +165,42 @@ class Vehicle
         ctx.lineTo(point1.x,point1.y);
         ctx.fill();
 
-        ctx.fillStyle = "lime";
-        if (this.dna[0] > 0)
+        if (SHOWATTRIBUTES)
         {
-            ctx.fillRect(this.position.x,this.position.y - this.r*3,10*Math.abs(this.dna[0]),this.r/3);
-        }
-        else
-        {
-            ctx.fillRect(this.position.x + 10*this.dna[0], this.position.y - this.r*3, 10*Math.abs(this.dna[0]),this.r/3)
-        }
-        ctx.fillStyle = "red";
-        if (this.dna[1] > 0)
-        {
-            ctx.fillRect(this.position.x,this.position.y - this.r*2 - this.r/3,10*Math.abs(this.dna[1]),this.r/3);
-        }
-        else
-        {
-            ctx.fillRect(this.position.x + 10*this.dna[1], this.position.y - this.r*2 - this.r/3, 10*Math.abs(this.dna[1]),this.r/3)
-        }
 
-
-        ctx.fillStyle = "white";
-        ctx.fillRect(this.position.x - this.r/6,this.position.y - this.r*3.5,this.r/3,this.r*2);
+            ctx.strokeStyle = "lime";
+            ctx.beginPath();
+            ctx.arc(this.position.x,this.position.y,this.dna[2],0,2*Math.PI,true);
+            ctx.stroke();
+    
+            ctx.strokeStyle = "red";
+            ctx.beginPath();
+            ctx.arc(this.position.x,this.position.y,this.dna[3],0,2*Math.PI,true);
+            ctx.stroke();
+    
+            ctx.fillStyle = "lime";
+            if (this.dna[0] > 0)
+            {
+                ctx.fillRect(this.position.x,this.position.y - this.r*3,10*Math.abs(this.dna[0]),this.r/3);
+            }
+            else
+            {
+                ctx.fillRect(this.position.x + 10*this.dna[0], this.position.y - this.r*3, 10*Math.abs(this.dna[0]),this.r/3)
+            }
+    
+            ctx.fillStyle = "red";
+            if (this.dna[1] > 0)
+            {
+                ctx.fillRect(this.position.x,this.position.y - this.r*2 - this.r/3,10*Math.abs(this.dna[1]),this.r/3);
+            }
+            else
+            {
+                ctx.fillRect(this.position.x + 10*this.dna[1], this.position.y - this.r*2 - this.r/3, 10*Math.abs(this.dna[1]),this.r/3)
+            }
+    
+            ctx.fillStyle = "white";
+            ctx.fillRect(this.position.x - this.r/6,this.position.y - this.r*3.5,this.r/3,this.r*2);
+        }
 
 
 
@@ -148,17 +215,30 @@ class Vehicle
         return str;
     }
 
-    Boundaries = function(width, height)
-    {
-        var d = 50;
+    Boundaries(width, height) {
+        var d = 15;
+        let desired = null;
+    
+        if (this.position.x < d) {
+          desired = new Vector(this.maxSpeed, this.velocity.y);
+        } else if (this.position.x > width - d) {
+          desired = new Vector(-this.maxSpeed, this.velocity.y);
+        }
+    
+        if (this.position.y < d) {
+          desired = new Vector(this.velocity.x, this.maxSpeed);
+        } else if (this.position.y > height - d) {
+          desired = new Vector(this.velocity.x, -this.maxSpeed);
+        }
+    
 
-        if (this.position.x > width - d || 
-            this.position.x < d || 
-            this.position.y < d || 
-            this.position.y > height - d)
-            {
-                this.ApplyForce(Vector.SetLength(Vector.Subtract(new Vector(width/2,height/2),this.position),this.maxForce*50));
-            }
-    }
+        if (desired != null) {
+          desired = Vector.Normalise(desired);
+          desired = Vector.Scale(desired,this.maxSpeed);
+          let steer = Vector.Subtract(desired, this.velocity);
+          steer = Vector.Limit(steer,this.maxForce*3);
+          this.ApplyForce(steer);
+        }
+      }
 
 }
