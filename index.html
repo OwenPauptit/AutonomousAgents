@@ -1,9 +1,29 @@
 
 
 <canvas class="canvas" id="canvas" width="800" height="600"></canvas>
-<br/>
-<input type="checkbox" id="checkbox">
+<br/><br/>
 <label>Show Vehicle Attributes</label>
+<input type="checkbox" id="showAttrCheckbox">
+<br/>
+<label>Mutation Rate</label>
+<input type="range" min="0" max="100" value="20" id="mutationRateSlider">
+<br/>
+<label>Reproduction Rate</label>
+<input type="range" min="0" max="100" value="25" id="reproductionRateSlider">
+<br/>
+<label>Food Production Rate</label>
+<input type="range" min="0" max="100" value="25" id="foodProductionSlider">
+<br/>
+<label>Poison Production Rate</label>
+<input type="range" min="0" max="100" value="10" id="poisonProductionSlider">
+<br/>
+<label>Food Reward</label>
+<input type="range" min="0" max="100" value="20" id="foodRewardSlider">
+<br/>
+<label>Poison Punishment</label>
+<input type="range" min="0" max="100" value="50" id="poisonPunishmentSlider">
+<br/>
+<button onclick="reset()">Reset</button>
 <br/>
 
 <script src="vector.js"></script>
@@ -15,6 +35,8 @@ FOODRATE = 0.025;
 POISONRATE = 0.01;
 MUTATIONRATE = 0.2;
 REPRODUCTIONRATE = 0.0025;
+FOODREWARD = 0.2;
+POISONPUNISHMENT = -0.5;
 SHOWATTRIBUTES = true;
 
 let v = new Vehicle(200,200);
@@ -23,11 +45,44 @@ vehicles = [];
 food = [];
 poison = [];
 
+reset = function()
+{
+    vehicles = [];
+    food = [];
+    poison = [];
+    for (var i = 0; i < 10; i++)
+        {
+            var x = Math.random() * canvas.width;
+            var y = Math.random() * canvas.height;
+            vehicles[i] = new Vehicle(x,y);
+        }
+        for (var i = 0; i < 40; i++)
+        {
+            var x = Math.random() * canvas.width;
+            var y = Math.random() * canvas.height;
+            food.push(new Vector(x,y));
+        }
+        for (var i = 0; i < 20; i++)
+        {
+            var x = Math.random() * canvas.width;
+            var y = Math.random() * canvas.height;
+            poison.push(new Vector(x,y));
+        }
+}
+
 window.onload = function (){
         canvas = document.getElementById("canvas");
         ctx = canvas.getContext("2d");
         document.addEventListener("mousemove",mouseMove);
-        checkbox = document.getElementById("checkbox");
+
+        showAttrCheckbox = document.getElementById("showAttrCheckbox");
+        mutRateSlider = document.getElementById("mutationRateSlider");
+        repRateSlider = document.getElementById("reproductionRateSlider");
+        foodRateSlider = document.getElementById("foodProductionSlider");
+        poisonRateSlider = document.getElementById("poisonProductionSlider");
+        foodRewardSlider = document.getElementById("foodRewardSlider");
+        poisonPunishmentSlider = document.getElementById("poisonPunishmentSlider");
+
         for (var i = 0; i < 10; i++)
         {
             var x = Math.random() * canvas.width;
@@ -77,7 +132,13 @@ window.onload = function (){
 
     function gameLoop()
     {
-        SHOWATTRIBUTES = checkbox.checked;
+        SHOWATTRIBUTES = showAttrCheckbox.checked;
+        MUTATIONRATE = mutRateSlider.value / 100;
+        REPRODUCTIONRATE = repRateSlider.value / 10000;
+        FOODRATE = foodRateSlider.value / 1000;
+        POISONRATE = poisonRateSlider.value / 1000;
+        FOODREWARD = foodRewardSlider.value / 100;
+        POISONPUNISHMENT = - poisonPunishmentSlider.value / 100;
 
         draw();
 

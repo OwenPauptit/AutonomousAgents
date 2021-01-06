@@ -70,8 +70,8 @@ class Vehicle
 
     Behave(good, bad)
     {
-        var steerG = this.Eat(good,0.2,this.dna[2]);
-        var steerB = this.Eat(bad,-0.5,this.dna[3]);
+        var steerG = this.Eat(good,FOODREWARD,this.dna[2]);
+        var steerB = this.Eat(bad,POISONPUNISHMENT,this.dna[3]);
 
         steerG = Vector.Scale(steerG, this.dna[0]);
         steerB = Vector.Scale(steerB, this.dna[1]);
